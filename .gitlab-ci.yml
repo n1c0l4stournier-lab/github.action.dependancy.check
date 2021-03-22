@@ -1,0 +1,53 @@
+stages:
+  - maven
+  - sonar
+  - container-structure-test
+  - container-analysis
+
+variables:
+  IP_SONAR_MACHINE: "10.1.1.1"
+
+dependancy-check:
+  stage: maven
+  image:
+    name: maven:3.6-openjdk-17
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - target
+  script:
+    - mvn clean install -DskipTests
+  artifacts:
+    paths:
+      - target
+    expire_in: 30 min
+  only:
+    - merge_requests
+    - master
+
+dependancy-check-sonar:
+  stage: sonar
+  image:
+    name: sonarsource/sonar-scanner-cli:4.6
+    entrypoint: [""]
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+      - .scannerwork
+  script:
+    - |
+      sonar-scanner \
+        -Dsonar.language=java \
+        -Dsonar.sources=src \
+        -Dsonar.host.url=http://${IP_SONAR_MACHINE}:9000 \
+        -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
+        -Dsonar.projectKey=demo-java-dependency-check \
+        -Dsonar.login=d6e3359bc8ab17670150d0155baf2e9b42348f5b
+  artifacts:
+    paths:
+      - target
+    expire_in: 30 min
+  only:
+    - merge_requests
+    - master
