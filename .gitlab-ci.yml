@@ -62,7 +62,6 @@ structure-test:
     name: docker:20.10.5
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
   before_script:
     - apk --no-cache add curl
     - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 
