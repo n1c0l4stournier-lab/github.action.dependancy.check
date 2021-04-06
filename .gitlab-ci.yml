@@ -1,53 +1,90 @@
 stages:
-  - maven
-  - sonar
-  - container-structure-test
-  - container-analysis
+  - build
+  - docker
+  - test
 
 variables:
-  IP_SONAR_MACHINE: "10.1.1.1"
+  SONAR_MACHINE_URL: "http://10.1.1.1:9000"
+  HARBOR_MACHINE_IP: "10.1.1.1:9001"
 
-dependancy-check:
-  stage: maven
+maven:
+  stage: build
   image:
-    name: maven:3.6-openjdk-17
+    name: maven:3.6-openjdk-8
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  script:
+    - mvn clean install -DskipTests
   cache:
     key: ${CI_JOB_NAME}
     paths:
-      - target
-  script:
-    - mvn clean install -DskipTests
+      - .m2/repository
   artifacts:
     paths:
       - target
     expire_in: 30 min
-  only:
-    - merge_requests
-    - master
 
-dependancy-check-sonar:
-  stage: sonar
+docker:
+  stage: docker
+  image:
+    name: docker:20.10.5
+  services:
+    - docker:20.10.5-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker build -t 10.1.1.1:9001/n1c0l4stournier/dependancy-check:1.0.0 .
+    - docker save -o dependancy-check-1.0.0.tar 10.1.1.1:9001/n1c0l4stournier/dependancy-check:1.0.0
+  artifacts:
+    paths:
+      - target
+      - dependancy-check-1.0.0.tar
+    expire_in: 30 min
+
+sonar:
+  stage: test
   image:
     name: sonarsource/sonar-scanner-cli:4.6
     entrypoint: [""]
+  script:
+    - sonar-scanner -Dsonar.host.url=${SONAR_MACHINE_URL}
   cache:
     key: "${CI_JOB_NAME}"
     paths:
       - .sonar/cache
       - .scannerwork
+
+structure-test:
+  stage: test
+  image:
+    name: docker:20.10.5
+  services:
+    - docker:20.10.5-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk --no-cache add curl
+    - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 
+    - chmod +x container-structure-test-linux-amd64 
+    - mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
   script:
-    - |
-      sonar-scanner \
-        -Dsonar.language=java \
-        -Dsonar.sources=src \
-        -Dsonar.host.url=http://${IP_SONAR_MACHINE}:9000 \
-        -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
-        -Dsonar.projectKey=demo-java-dependency-check \
-        -Dsonar.login=d6e3359bc8ab17670150d0155baf2e9b42348f5b
+    - docker load -i dependancy-check-1.0.0.tar
+    - container-structure-test test --image 10.1.1.1:9001/n1c0l4stournier/dependancy-check:1.0.0 --config structure-test.yaml
   artifacts:
     paths:
-      - target
+      - dependancy-check-1.0.0.tar
     expire_in: 30 min
-  only:
-    - merge_requests
-    - master
+
+#clair:
+#  stage: test
+#  image:
+#    name: 
+#    entrypoint: [""]
+#  script:
+#    - docker load -i dependancy-check-1.0.0.tar
+#  artifacts:
+#    paths:
+#      - dependancy-check-1.0.0.tar
+#    expire_in: 30 min
