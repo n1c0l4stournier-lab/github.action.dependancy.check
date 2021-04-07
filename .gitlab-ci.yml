@@ -7,6 +7,9 @@ variables:
   SONAR_MACHINE_URL: "http://10.1.1.1:9000"
   HARBOR_MACHINE_IP: "10.1.1.1:9001"
 
+services:
+  - docker:20.10.5-dind
+
 maven:
   stage: build
   image:
@@ -28,8 +31,6 @@ docker:
   stage: docker
   image:
     name: docker:20.10.5
-  services:
-    - docker:20.10.5-dind
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -59,8 +60,6 @@ structure-test:
   stage: test
   image:
     name: docker:20.10.5
-  services:
-    - docker:20.10.5-dind
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
