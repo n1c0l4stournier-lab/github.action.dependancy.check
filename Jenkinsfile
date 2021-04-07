@@ -19,9 +19,9 @@ pipeline {
 
             steps {
                 sh "mvn clean install -DskipTests"
+                dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
             }
 
-            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
 
         }
     }
