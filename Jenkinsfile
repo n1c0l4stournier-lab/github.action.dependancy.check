@@ -21,6 +21,8 @@ pipeline {
                 sh "mvn clean install -DskipTests"
             }
 
+            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+
         }
     }
 }
