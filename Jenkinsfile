@@ -1,5 +1,4 @@
 pipeline {
-
     agent {
         docker {
             image 'maven:3.6-openjdk-8'
@@ -9,14 +8,13 @@ pipeline {
     triggers {
         pollSCM('*/1 * * * *')
     }
-    
+
     stages {
-        stage ('Docker Image') {
+        stage ('Maven build') {
             steps {
-                sh "mvn clean install -DskipTests"
+                sh 'mvn clean install -DskipTests'
                 dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
             }
         }
     }
-
 }
