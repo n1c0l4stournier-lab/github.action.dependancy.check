@@ -4,4 +4,4 @@ commandTests:
 - name: "Check java version"
   command: "sh"
   args: ["-c", "java -version 2>&1;"]
-  expectedOutput: ["1.9"]
+  expectedOutput: ["1.8"]
