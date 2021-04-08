@@ -96,6 +96,7 @@
 				<sonar.projectKey>demo-java-dependency-check</sonar.projectKey>
 				<sonar.login>feece463fd9cceae20ee2e7b44189b6367bea49d</sonar.login>
 				<sonar.dependencyCheck.xmlReportPath>target/dependency-check-report.xml</sonar.dependencyCheck.xmlReportPath>
+				<sonar.dependencyCheck.htmlReportPath>target/dependency-check-report.html</sonar.dependencyCheck.htmlReportPath>
 
 				<sonar.java.libraries.empty>true</sonar.java.libraries.empty>
 				<sonar.exclusions>pom.xml</sonar.exclusions>

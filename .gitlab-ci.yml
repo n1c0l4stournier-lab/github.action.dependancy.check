@@ -43,19 +43,6 @@ docker:
       - dependancy-check-1.0.0.tar
     expire_in: 30 min
 
-sonar:
-  stage: test
-  image:
-    name: sonarsource/sonar-scanner-cli:4.6
-    entrypoint: [""]
-  script:
-    - sonar-scanner -Dsonar.host.url=${SONAR_MACHINE_URL}
-  cache:
-    key: "${CI_JOB_NAME}"
-    paths:
-      - .sonar/cache
-      - .scannerwork
-
 structure-test:
   stage: test
   image:
